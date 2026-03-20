@@ -1,222 +1,1546 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Downloader Pro</title>
-    <style>
-        /* Modern UI/UX styling without any CSS frameworks */
-        :root { 
-            --bg: #0f172a; 
-            --card: #1e293b; 
-            --text: #f8fafc; 
-            --accent: #3b82f6; 
-            --success: #10b981;
-            --error: #ef4444;
-        }
-        
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            min-height: 100vh;
-            margin: 0; 
-            padding: 2rem; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaVault Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #16161f;
+    --bg4: #1c1c28;
+    --accent: #7c5cfc;
+    --accent2: #a78bfa;
+    --accent3: #c4b5fd;
+    --gold: #f59e0b;
+    --gold2: #fcd34d;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #f1f0ff;
+    --text2: #a09cc4;
+    --text3: #6b6892;
+    --border: rgba(124,92,252,0.15);
+    --border2: rgba(124,92,252,0.3);
+    --glass: rgba(124,92,252,0.06);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        .container { 
-            background: var(--card); 
-            padding: 2.5rem; 
-            border-radius: 16px; 
-            width: 100%; 
-            max-width: 550px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
-        }
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
 
-        h1 { text-align: center; margin-top: 0; font-size: 1.8rem; }
-        
-        .input-group { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 1rem; 
-        }
+  /* AMBIENT GLOW */
+  .ambient {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ambient-1 { width: 600px; height: 600px; background: rgba(124,92,252,0.08); top: -200px; left: -100px; }
+  .ambient-2 { width: 400px; height: 400px; background: rgba(245,158,11,0.05); bottom: -100px; right: -100px; }
 
-        input { 
-            flex: 1; 
-            padding: 14px; 
-            border: 1px solid #475569; 
-            border-radius: 8px; 
-            background: var(--bg); 
-            color: white; 
-            font-size: 1rem;
-            outline: none; 
-            transition: border-color 0.2s;
-        }
+  /* LAYOUT */
+  .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
 
-        input:focus { border-color: var(--accent); }
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--accent), #5b21b6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo-badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-left: 4px;
+    letter-spacing: 1px;
+  }
+  .header-pills { display: flex; gap: 8px; }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--glass);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .pill:hover { color: var(--text); border-color: var(--accent); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
 
-        button { 
-            padding: 14px 24px; 
-            background: var(--accent); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            font-size: 1rem;
-            transition: background 0.2s; 
-        }
+  /* HERO */
+  .hero {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 16px;
+    background: rgba(124,92,252,0.1);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent3);
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  h1 span {
+    background: linear-gradient(135deg, var(--accent2), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text2);
+    font-weight: 300;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
 
-        button:hover { background: #2563eb; }
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+    gap: 4px;
+    margin-bottom: 28px;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+  .tab:hover { color: var(--text2); }
+  .tab.active {
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    box-shadow: 0 2px 20px rgba(124,92,252,0.15);
+  }
+  .tab-icon { font-size: 16px; }
 
-        .status { 
-            text-align: center; 
-            margin: 15px 0; 
-            font-size: 0.95rem; 
-            color: #94a3b8; 
-            font-weight: 500;
-        }
+  /* INPUT AREA */
+  .input-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 28px;
+    transition: border-color 0.3s;
+  }
+  .input-card:focus-within { border-color: var(--border2); }
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .input-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .input-prefix {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .main-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 16px 16px 50px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .main-input::placeholder { color: var(--text3); }
+  .main-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+  }
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 26px;
+    background: linear-gradient(135deg, var(--accent), #5b21b6);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s, box-shadow 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,92,252,0.35); }
+  .btn-primary:active { transform: translateY(0); }
 
-        /* Video Player Placeholder */
-        .player-container { 
-            width: 100%; 
-            aspect-ratio: 16/9; 
-            background: #000; 
-            border-radius: 10px; 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 1.5rem; 
-            border: 1px solid #334155;
-        }
+  /* SEARCH OPTIONS */
+  .search-options {
+    display: flex;
+    gap: 20px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .chip:hover, .chip.active { border-color: var(--accent); color: var(--accent3); background: rgba(124,92,252,0.08); }
+  .chip input[type=checkbox] { display: none; }
 
-        /* Real-time Progress Tracking UI */
-        .progress-bar { 
-            width: 100%; 
-            height: 10px; 
-            background: #334155; 
-            border-radius: 5px; 
-            overflow: hidden; 
-            display: none; 
-            margin-bottom: 1.5rem; 
-        }
+  /* RESULTS GRID */
+  .results-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .video-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+    animation: fadeSlide 0.4s ease both;
+  }
+  .video-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .video-card:nth-child(1) { animation-delay: 0.05s; }
+  .video-card:nth-child(2) { animation-delay: 0.1s; }
+  .video-card:nth-child(3) { animation-delay: 0.15s; }
+  .video-card:nth-child(4) { animation-delay: 0.2s; }
+  .video-card:nth-child(5) { animation-delay: 0.25s; }
+  .video-card:nth-child(6) { animation-delay: 0.3s; }
+  .thumb-wrap {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--bg3);
+    overflow: hidden;
+  }
+  .thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .video-card:hover .thumb-wrap img { transform: scale(1.04); }
+  .thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+    display: flex;
+    align-items: flex-end;
+    padding: 12px;
+  }
+  .duration-badge {
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
+  .play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .video-card:hover .play-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .card-body { padding: 14px 16px 16px; }
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .card-channel {
+    font-size: 12px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .verified { color: var(--accent2); font-size: 10px; }
+  .card-views {
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text2);
+  }
+  .btn-action:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+  .btn-action.mp4:hover { border-color: rgba(124,92,252,0.5); color: var(--accent3); }
+  .btn-action.mp3:hover { border-color: rgba(245,158,11,0.5); color: var(--gold2); }
 
-        .progress-fill { 
-            height: 100%; 
-            background: var(--success); 
-            width: 0%; 
-            transition: width 0.3s ease; 
-        }
+  /* PLAYER */
+  .player-panel {
+    display: none;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+    animation: fadeSlide 0.35s ease;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  }
+  .player-panel.visible { display: block; }
+  .player-video {
+    aspect-ratio: 16/9;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .player-video img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.6);
+  }
+  .player-center {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .big-play {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, var(--accent), #5b21b6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 0 40px rgba(124,92,252,0.5);
+    transition: transform 0.2s;
+  }
+  .big-play:hover { transform: scale(1.1); }
+  .player-msg { font-size: 13px; color: rgba(255,255,255,0.7); text-align: center; }
+  .player-controls {
+    background: var(--bg3);
+    padding: 4px 20px 10px;
+  }
+  .progress-bar-wrap {
+    height: 4px;
+    background: var(--bg4);
+    border-radius: 2px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    position: relative;
+    margin-top: 14px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.1s;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: -3px;
+    width: 10px;
+    height: 10px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .ctrl-left, .ctrl-right { display: flex; align-items: center; gap: 12px; }
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+    padding: 4px;
+  }
+  .ctrl-btn:hover { color: var(--text); }
+  .time-display { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
+  .vol-slider {
+    width: 80px;
+    accent-color: var(--accent);
+  }
+  .player-info {
+    padding: 20px 24px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .player-details { flex: 1; }
+  .player-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .player-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .player-meta span {
+    font-size: 13px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .player-download-group { display: flex; gap: 10px; align-items: flex-start; }
+  .btn-dl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .btn-dl.mp4 {
+    background: rgba(124,92,252,0.1);
+    border-color: var(--accent);
+    color: var(--accent3);
+  }
+  .btn-dl.mp3 {
+    background: rgba(245,158,11,0.08);
+    border-color: var(--gold);
+    color: var(--gold2);
+  }
+  .btn-dl:hover { transform: translateY(-2px); }
+  .btn-dl.mp4:hover { background: rgba(124,92,252,0.2); box-shadow: 0 8px 24px rgba(124,92,252,0.2); }
+  .btn-dl.mp3:hover { background: rgba(245,158,11,0.15); box-shadow: 0 8px 24px rgba(245,158,11,0.15); }
 
-        .controls { 
-            display: none; 
-            gap: 15px; 
-            justify-content: center; 
-        }
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    text-align: center;
+    padding: 8px;
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .stat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; }
 
-        .btn-mp4 { background: var(--accent); }
-        .btn-mp3 { background: var(--success); }
-        .btn-mp3:hover { background: #059669; }
-    </style>
+  /* COMMENTS */
+  .comments-section { padding: 20px 24px; }
+  .comments-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .comments-count {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .comment {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    animation: fadeSlide 0.3s ease both;
+  }
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+  .comment-body { flex: 1; }
+  .comment-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .comment-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .comment-likes { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  /* DOWNLOAD PROGRESS */
+  .download-toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 999;
+    width: 340px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    display: none;
+    animation: slideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .download-toast.visible { display: block; }
+  @keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .toast-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .toast-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast-close { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; }
+  .toast-file { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+  .toast-progress-bar {
+    height: 4px;
+    background: var(--bg4);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .toast-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .toast-status { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); }
+
+  /* INSTAGRAM PANEL */
+  .ig-result {
+    display: none;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+    animation: fadeSlide 0.35s ease;
+  }
+  .ig-result.visible { display: block; }
+  .ig-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ig-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .ig-user-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .ig-user-handle { font-size: 12px; color: var(--text3); }
+  .ig-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .ig-preview {
+    aspect-ratio: 4/5;
+    background: var(--bg3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+  .ig-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+  }
+  .reel-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .ig-details { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .ig-caption {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .ig-stats { display: flex; gap: 20px; }
+  .ig-stat { font-size: 13px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+  .ig-stat strong { color: var(--text); font-weight: 500; }
+  .ig-formats { display: flex; flex-direction: column; gap: 8px; }
+  .ig-format-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    color: var(--text2);
+    font-size: 13px;
+  }
+  .ig-format-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
+  .ig-format-left { display: flex; align-items: center; gap: 10px; }
+  .format-icon { font-size: 18px; }
+  .format-info { text-align: left; }
+  .format-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .format-size { font-size: 11px; color: var(--text3); }
+  .format-quality { font-size: 11px; padding: 2px 7px; border-radius: 5px; font-weight: 600; }
+  .quality-hd { background: rgba(16,185,129,0.15); color: var(--green); }
+  .quality-sd { background: rgba(245,158,11,0.12); color: var(--gold); }
+
+  /* LOADING STATE */
+  .loading-state {
+    display: none;
+    text-align: center;
+    padding: 60px 24px;
+  }
+  .loading-state.visible { display: block; }
+  .spinner-big {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 20px;
+  }
+  .loading-text { color: var(--text2); font-size: 15px; }
+  .loading-sub { color: var(--text3); font-size: 13px; margin-top: 6px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    display: none;
+  }
+  .empty-state.visible { display: block; }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-text { color: var(--text2); font-size: 16px; }
+  .empty-sub { color: var(--text3); font-size: 13px; margin-top: 6px; }
+
+  /* FEATURES STRIP */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .feature-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.25s;
+  }
+  .feature-card:hover { border-color: var(--border2); }
+  .feature-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .feature-desc { font-size: 13px; color: var(--text3); line-height: 1.6; }
+
+  @media (max-width: 640px) {
+    .results-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .ig-content { grid-template-columns: 1fr; }
+    .features { grid-template-columns: 1fr; }
+    .player-info { flex-direction: column; }
+    .player-download-group { flex-wrap: wrap; }
+    header { flex-direction: column; gap: 16px; }
+    h1 { font-size: 36px; }
+    .header-pills { display: none; }
+    .download-toast { width: calc(100vw - 32px); right: 16px; bottom: 16px; }
+  }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>⚡ Media Downloader</h1>
-        
-        <div class="input-group">
-            <input type="text" id="urlInput" placeholder="Paste YT or Insta link here...">
-            <button onclick="processUrl()">Search</button>
-        </div>
-        
-        <div class="status" id="statusText">Waiting for a URL...</div>
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
 
-        <div class="player-container" id="player">
-            <span style="color: #64748b;">▶️ Media Player Ready</span>
-        </div>
+<div class="app">
 
-        <div class="progress-bar" id="progressContainer">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⬇</div>
+      <div>
+        <div class="logo-text">MediaVault <span class="logo-badge">PRO</span></div>
+      </div>
+    </div>
+    <div class="header-pills">
+      <div class="pill"><span class="dot"></span> Live</div>
+      <div class="pill">🔒 No Data Stored</div>
+      <div class="pill">⚡ Ultra Fast</div>
+    </div>
+  </header>
 
-        <div class="controls" id="downloadControls">
-            <button class="btn-mp4" onclick="simulateDownload('MP4')">⬇️ Download MP4</button>
-            <button class="btn-mp3" onclick="simulateDownload('MP3')">🎵 Download MP3</button>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">✦ Premium Media Downloader</div>
+    <h1>Download <span>Anything,</span><br>Anywhere.</h1>
+    <p class="hero-sub">Search YouTube, watch with full player, grab MP4 or MP3. Download Instagram Reels in seconds. No watermarks, no limits.</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('youtube')" id="tab-youtube">
+      <span class="tab-icon">▶</span> YouTube
+    </button>
+    <button class="tab" onclick="switchTab('instagram')" id="tab-instagram">
+      <span class="tab-icon">📸</span> Instagram
+    </button>
+    <button class="tab" onclick="switchTab('auto')" id="tab-auto">
+      <span class="tab-icon">🔄</span> Auto-Detect
+    </button>
+  </div>
+
+  <!-- YOUTUBE PANEL -->
+  <div id="panel-youtube">
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-wrap">
+          <span class="input-prefix">🔍</span>
+          <input class="main-input" id="yt-input" type="text" placeholder="Search videos or paste a YouTube URL…" onkeydown="if(event.key==='Enter') ytSearch()">
         </div>
+        <button class="btn-primary" onclick="ytSearch()">
+          Search <span>→</span>
+        </button>
+      </div>
+      <div class="search-options">
+        <label class="chip active" id="chip-all" onclick="setFilter('all')">All</label>
+        <label class="chip" id="chip-short" onclick="setFilter('short')">🕐 Short (&lt;5min)</label>
+        <label class="chip" id="chip-long" onclick="setFilter('long')">🎬 Long (&gt;20min)</label>
+        <label class="chip" id="chip-hd" onclick="setFilter('hd')">📺 HD Only</label>
+        <label class="chip" id="chip-4k" onclick="setFilter('4k')">🌟 4K</label>
+      </div>
     </div>
 
-    <script>
-        // Pure Vanilla JavaScript - No React/Next.js
-        function processUrl() {
-            const url = document.getElementById('urlInput').value.trim();
-            const statusText = document.getElementById('statusText');
-            const controls = document.getElementById('downloadControls');
-            const player = document.getElementById('player');
-            const progressContainer = document.getElementById('progressContainer');
+    <!-- PLAYER -->
+    <div class="player-panel" id="player-panel">
+      <div class="player-video" id="player-bg">
+        <img id="player-thumb" src="" alt="">
+        <div class="player-center">
+          <div class="big-play" onclick="togglePlay()">▶</div>
+          <div class="player-msg" id="player-msg">Click to play preview</div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <div class="progress-bar-wrap" onclick="seekBar(event)">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="controls-row">
+          <div class="ctrl-left">
+            <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
+            <button class="ctrl-btn" id="play-icon" onclick="togglePlay()">▶</button>
+            <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
+            <span class="time-display" id="time-display">0:00 / 0:00</span>
+          </div>
+          <div class="ctrl-right">
+            <span class="ctrl-btn">🔊</span>
+            <input type="range" class="vol-slider" id="vol-slider" min="0" max="100" value="80">
+            <button class="ctrl-btn">⛶</button>
+          </div>
+        </div>
+      </div>
+      <div class="player-info">
+        <div class="player-details">
+          <div class="player-title" id="player-title">Video Title</div>
+          <div class="player-meta">
+            <span>📺 <span id="player-channel">Channel</span></span>
+            <span>👁 <span id="player-views">0 views</span></span>
+            <span>📅 <span id="player-date">2024</span></span>
+            <span id="player-quality-badge" style="background:rgba(16,185,129,0.15);color:var(--green);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;">1080p HD</span>
+          </div>
+        </div>
+        <div class="player-download-group">
+          <button class="btn-dl mp4" onclick="startDownload('mp4')">⬇ MP4 HD</button>
+          <button class="btn-dl mp3" onclick="startDownload('mp3')">🎵 MP3</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="stat-views">0</div><div class="stat-lbl">Views</div></div>
+        <div class="stat"><div class="stat-val" id="stat-likes">0</div><div class="stat-lbl">Likes</div></div>
+        <div class="stat"><div class="stat-val" id="stat-comments">0</div><div class="stat-lbl">Comments</div></div>
+        <div class="stat"><div class="stat-val" id="stat-duration">0:00</div><div class="stat-lbl">Duration</div></div>
+      </div>
+      <div class="comments-section">
+        <div class="comments-title">
+          Comments <span class="comments-count" id="comments-count">0</span>
+        </div>
+        <div id="comments-list"></div>
+      </div>
+    </div>
 
-            // Reset UI
-            progressContainer.style.display = "none";
-            document.getElementById('progressBar').style.width = "0%";
+    <!-- LOADING -->
+    <div class="loading-state" id="yt-loading">
+      <div class="spinner-big"></div>
+      <div class="loading-text">Searching YouTube…</div>
+      <div class="loading-sub">Fetching metadata and thumbnails</div>
+    </div>
 
-            if (!url) {
-                statusText.innerText = "Bhai, link toh daal do! (Please enter a valid URL)";
-                statusText.style.color = "var(--error)";
-                return;
-            }
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="yt-empty">
+      <div class="empty-icon">▶</div>
+      <div class="empty-text">Search for videos to get started</div>
+      <div class="empty-sub">Try "lo-fi music" or paste a YouTube URL</div>
+    </div>
 
-            statusText.style.color = "#94a3b8";
+    <!-- RESULTS -->
+    <div id="yt-results">
+      <div class="results-label" id="results-label" style="display:none">— Search Results</div>
+      <div class="results-grid" id="results-grid"></div>
+    </div>
+  </div>
 
-            // 🔄 Auto-detect platform from URL using basic string matching
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                statusText.innerText = "🔍 Platform detected: YouTube 🔴";
-            } else if (url.includes('instagram.com')) {
-                statusText.innerText = "🔍 Platform detected: Instagram 🟣";
-            } else {
-                statusText.innerText = "Unsupported URL. Only YouTube & Instagram are supported.";
-                statusText.style.color = "var(--error)";
-                controls.style.display = "none";
-                player.style.display = "none";
-                return;
-            }
+  <!-- INSTAGRAM PANEL -->
+  <div id="panel-instagram" style="display:none">
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-wrap">
+          <span class="input-prefix">📸</span>
+          <input class="main-input" id="ig-input" type="text" placeholder="Paste Instagram Reel or post URL…" onkeydown="if(event.key==='Enter') igFetch()">
+        </div>
+        <button class="btn-primary" onclick="igFetch()">
+          Fetch <span>→</span>
+        </button>
+      </div>
+    </div>
 
-            // Reveal UI elements
-            player.style.display = "flex";
-            controls.style.display = "flex";
-        }
+    <div class="loading-state" id="ig-loading">
+      <div class="spinner-big"></div>
+      <div class="loading-text">Fetching Instagram media…</div>
+      <div class="loading-sub">Detecting format and quality options</div>
+    </div>
 
-        function simulateDownload(format) {
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const statusText = document.getElementById('statusText');
+    <div class="empty-state visible" id="ig-empty">
+      <div class="empty-icon">📸</div>
+      <div class="empty-text">Paste an Instagram URL above</div>
+      <div class="empty-sub">Supports Reels, Posts, Stories and IGTV</div>
+    </div>
 
-            progressContainer.style.display = "block";
-            progressBar.style.width = "0%";
-            statusText.style.color = "#94a3b8";
-            
-            // ⚡ Real-time progress tracking (Simulated for frontend demo)
-            // In a real app, this would be tied to Axios/Fetch upload progress events from your backend API
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 12; // Random increment to simulate network speed
-                
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    statusText.innerText = `✅ ${format} Download Complete! Check your files.`;
-                    statusText.style.color = "var(--success)";
-                    
-                    // Hide progress bar after completion
-                    setTimeout(() => { progressContainer.style.display = "none"; }, 3000);
-                } else {
-                    statusText.innerText = `Downloading ${format}... ${Math.floor(progress)}%`;
-                }
-                
-                progressBar.style.width = `${progress}%`;
-            }, 300);
-        }
-    </script>
+    <div class="ig-result" id="ig-result">
+      <div class="ig-header">
+        <div class="ig-avatar">📸</div>
+        <div>
+          <div class="ig-user-name" id="ig-username">@username</div>
+          <div class="ig-user-handle" id="ig-handle">Verified Creator</div>
+        </div>
+      </div>
+      <div class="ig-content">
+        <div class="ig-preview" id="ig-preview">
+          🎬
+          <div class="ig-preview-overlay">
+            <div class="reel-badge">▶ Reel</div>
+          </div>
+        </div>
+        <div class="ig-details">
+          <div class="ig-caption" id="ig-caption">Loading caption…</div>
+          <div class="ig-stats">
+            <div class="ig-stat">❤️ <strong id="ig-likes">0</strong> likes</div>
+            <div class="ig-stat">💬 <strong id="ig-cmt">0</strong> comments</div>
+          </div>
+          <div class="ig-formats">
+            <button class="ig-format-btn" onclick="startDownload('mp4-hd','ig')">
+              <div class="ig-format-left">
+                <span class="format-icon">🎬</span>
+                <div class="format-info">
+                  <div class="format-name">Video — MP4</div>
+                  <div class="format-size" id="ig-size-hd">~12.4 MB</div>
+                </div>
+              </div>
+              <span class="format-quality quality-hd">1080p HD</span>
+            </button>
+            <button class="ig-format-btn" onclick="startDownload('mp4-sd','ig')">
+              <div class="ig-format-left">
+                <span class="format-icon">📹</span>
+                <div class="format-info">
+                  <div class="format-name">Video — MP4</div>
+                  <div class="format-size" id="ig-size-sd">~4.2 MB</div>
+                </div>
+              </div>
+              <span class="format-quality quality-sd">480p SD</span>
+            </button>
+            <button class="ig-format-btn" onclick="startDownload('thumb','ig')">
+              <div class="ig-format-left">
+                <span class="format-icon">🖼</span>
+                <div class="format-info">
+                  <div class="format-name">Thumbnail — JPG</div>
+                  <div class="format-size">~320 KB</div>
+                </div>
+              </div>
+              <span class="format-quality quality-hd">Original</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTO-DETECT PANEL -->
+  <div id="panel-auto" style="display:none">
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-wrap">
+          <span class="input-prefix">🔗</span>
+          <input class="main-input" id="auto-input" type="text" placeholder="Paste any URL — YouTube, Instagram, Twitter, TikTok…" onkeydown="if(event.key==='Enter') autoDetect()">
+        </div>
+        <button class="btn-primary" onclick="autoDetect()">
+          Detect <span>→</span>
+        </button>
+      </div>
+    </div>
+    <div class="empty-state visible" id="auto-empty">
+      <div class="empty-icon">🔄</div>
+      <div class="empty-text">Paste any media URL to begin</div>
+      <div class="empty-sub">Supports YouTube · Instagram · Twitter · TikTok · Facebook</div>
+    </div>
+    <div id="auto-result"></div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features">
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Blazing Fast</div>
+      <div class="feature-desc">Multi-threaded downloads with CDN acceleration. No queues, no waiting.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Private & Secure</div>
+      <div class="feature-desc">Zero data logging. Downloads processed client-side. We never see your URLs.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🌟</span>
+      <div class="feature-title">4K & HDR Support</div>
+      <div class="feature-desc">Download in original quality — up to 4K, HDR, 60fps wherever available.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DOWNLOAD TOAST -->
+<div class="download-toast" id="dl-toast">
+  <div class="toast-header">
+    <div class="toast-title">
+      <div class="toast-spinner" id="toast-spinner"></div>
+      <span id="toast-title-text">Preparing download…</span>
+    </div>
+    <button class="toast-close" onclick="closeToast()">✕</button>
+  </div>
+  <div class="toast-file" id="toast-file">video_1080p.mp4</div>
+  <div class="toast-progress-bar">
+    <div class="toast-progress-fill" id="toast-fill"></div>
+  </div>
+  <div class="toast-status">
+    <span id="toast-pct">0%</span>
+    <span id="toast-speed">—</span>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const VIDEO_DB = [
+  { id:1, title:"Lo-Fi Hip Hop Radio 24/7 — Beats to Relax & Study", channel:"ChillHop Music", views:"2.1M", viewsNum:2100000, likes:"48K", comments:"3.2K", duration:"3:24:15", durationSec:12255, thumb:"https://picsum.photos/seed/lofi/480/270", date:"2 days ago", quality:"1080p" },
+  { id:2, title:"How I Built a $1M SaaS in 12 Months — Full Story", channel:"Indie Hackers", views:"980K", viewsNum:980000, likes:"31K", comments:"2.1K", duration:"28:42", durationSec:1722, thumb:"https://picsum.photos/seed/saas/480/270", date:"1 week ago", quality:"4K" },
+  { id:3, title:"Tokyo Night Walk 4K — Shibuya to Shinjuku 2024", channel:"Japan Walks", views:"4.7M", viewsNum:4700000, likes:"92K", comments:"5.8K", duration:"1:12:33", durationSec:4353, thumb:"https://picsum.photos/seed/tokyo/480/270", date:"3 months ago", quality:"4K" },
+  { id:4, title:"Mastering React in 2024 — Full Course for Beginners", channel:"Traversy Media", views:"1.3M", viewsNum:1300000, likes:"55K", comments:"4.4K", duration:"8:05:11", durationSec:29111, thumb:"https://picsum.photos/seed/react/480/270", date:"5 months ago", quality:"1080p" },
+  { id:5, title:"This AI just changed EVERYTHING (GPT-5 is here)", channel:"Two Minute Papers", views:"3.2M", viewsNum:3200000, likes:"78K", comments:"6.2K", duration:"12:18", durationSec:738, thumb:"https://picsum.photos/seed/ai5/480/270", date:"2 weeks ago", quality:"1080p" },
+  { id:6, title:"Minimal Desk Setup 2024 — The Perfect Home Office", channel:"JustJoshDesigns", views:"560K", viewsNum:560000, likes:"24K", comments:"1.8K", duration:"9:45", durationSec:585, thumb:"https://picsum.photos/seed/desk/480/270", date:"1 month ago", quality:"4K" },
+];
+
+const COMMENTS_DB = [
+  [
+    { name:"Alex R.", avatar:"A", bg:"#7c5cfc", text:"This is literally the most relaxing thing on the internet. I've had it on for 3 days straight.", likes:"1.2K" },
+    { name:"Sarah K.", avatar:"S", bg:"#5b21b6", text:"Can't study without this. It's my secret weapon for focus.", likes:"847" },
+    { name:"devdude99", avatar:"D", bg:"#0f6e56", text:"The art style keeps getting better every time. Absolute vibes.", likes:"412" },
+  ],
+  [
+    { name:"Mike T.", avatar:"M", bg:"#993c1d", text:"Most honest breakdown I've seen. No fluff, just actual numbers. Respect.", likes:"3.1K" },
+    { name:"startup_founder", avatar:"SF", bg:"#185fa5", text:"Your transparency is rare in this space. Subscribed immediately.", likes:"2.4K" },
+    { name:"Jenny L.", avatar:"J", bg:"#993556", text:"The part about churn at 6:32 hit different. Going to rethink our whole retention strategy.", likes:"1.8K" },
+  ],
+  [
+    { name:"wanderlust42", avatar:"W", bg:"#3b6d11", text:"I've been to Tokyo 3 times and this video made me book a 4th. Absolutely stunning.", likes:"5.4K" },
+    { name:"nightowl_jp", avatar:"N", bg:"#5b21b6", text:"The sound design is perfect. Feels like I'm actually there.", likes:"3.9K" },
+    { name:"TravelFan", avatar:"T", bg:"#854f0b", text:"The Shibuya crossing at night segment is art. Saved.", likes:"2.1K" },
+  ],
+  [
+    { name:"codewithme_", avatar:"C", bg:"#185fa5", text:"Best React course of 2024. Done 3 other courses and this one actually explains WHY, not just HOW.", likes:"8.7K" },
+    { name:"learntocode", avatar:"L", bg:"#0f6e56", text:"6 months ago I knew zero React. Watched this twice. Just got my first dev job.", likes:"6.2K" },
+    { name:"ReactDev", avatar:"RD", bg:"#7c5cfc", text:"Bookmarked for future reference. The hooks section alone is worth 5 full courses.", likes:"4.1K" },
+  ],
+  [
+    { name:"SkepticalSam", avatar:"SS", bg:"#a32d2d", text:"I was skeptical at first but the benchmarks at 4:22 changed my mind completely. Wow.", likes:"9.2K" },
+    { name:"AIResearcher", avatar:"AI", bg:"#5b21b6", text:"The emergent behavior examples are shocking. We're in uncharted territory.", likes:"7.8K" },
+    { name:"futurist_dev", avatar:"F", bg:"#3b6d11", text:"Two years ago this would have been science fiction. Two years from now…", likes:"5.5K" },
+  ],
+  [
+    { name:"setupgoals", avatar:"SG", bg:"#993c1d", text:"The monitor placement advice saved my neck literally and figuratively. 10/10.", likes:"2.3K" },
+    { name:"WFH_Pro", avatar:"W", bg:"#185fa5", text:"Just ordered everything in the description. My productivity is going to go through the roof.", likes:"1.7K" },
+    { name:"minimalist_life", avatar:"ML", bg:"#0f6e56", text:"This is what peak focus environment looks like. Gorgeous and functional.", likes:"1.1K" },
+  ],
+];
+
+const IG_MOCKS = {
+  "instagram.com/reel": { user: "@thelonelylens", handle: "Travel & Street Photography ✦ 2.1M", caption: "Golden hour in Santorini hits different when you're completely lost 🌅 No map, no plan — just following the light and the sound of bells echoing off white walls. Some of my best shots come from getting completely, beautifully lost.", likes: "148K", cmt: "4.2K", sizehd: "~18.6 MB", sizesd: "~6.1 MB" },
+  "default": { user: "@creator.studio", handle: "Content Creator ✦ 892K", caption: "Creating this took 3 sleepless nights and one very supportive dog 🐕 Worth every second. Drop a ❤️ if you want the behind-the-scenes!", likes: "92K", cmt: "3.1K", sizehd: "~14.2 MB", sizesd: "~5.8 MB" },
+};
+
+// ── STATE ─────────────────────────────────────────────
+let currentTab = 'youtube';
+let currentVideo = null;
+let isPlaying = false;
+let playProgress = 0;
+let playInterval = null;
+let currentFilter = 'all';
+let downloadInterval = null;
+
+// ── TABS ──────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  ['youtube','instagram','auto'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+}
+
+// ── FILTER ────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  ['all','short','long','hd','4k'].forEach(id => {
+    document.getElementById('chip-'+id).classList.toggle('active', id === f);
+  });
+}
+
+function filterVideos(vids) {
+  return vids.filter(v => {
+    if (currentFilter === 'short') return v.durationSec < 300;
+    if (currentFilter === 'long') return v.durationSec > 1200;
+    if (currentFilter === 'hd') return v.quality === '1080p' || v.quality === '4K';
+    if (currentFilter === '4k') return v.quality === '4K';
+    return true;
+  });
+}
+
+// ── YOUTUBE SEARCH ────────────────────────────────────
+function ytSearch() {
+  const q = document.getElementById('yt-input').value.trim();
+  if (!q) return;
+
+  document.getElementById('yt-empty').classList.remove('visible');
+  document.getElementById('results-grid').innerHTML = '';
+  document.getElementById('results-label').style.display = 'none';
+  document.getElementById('yt-loading').classList.add('visible');
+  document.getElementById('player-panel').classList.remove('visible');
+
+  setTimeout(() => {
+    document.getElementById('yt-loading').classList.remove('visible');
+    const results = filterVideos(VIDEO_DB);
+    document.getElementById('results-label').style.display = '';
+    document.getElementById('results-label').textContent = `— ${results.length} results for "${q}"`;
+    renderResults(results);
+  }, 1400 + Math.random() * 600);
+}
+
+function renderResults(vids) {
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '';
+  if (!vids.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">No results for this filter. Try another.</div>`;
+    return;
+  }
+  vids.forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.innerHTML = `
+      <div class="thumb-wrap" onclick="openPlayer(${v.id})">
+        <img src="${v.thumb}" alt="${v.title}" loading="lazy">
+        <div class="thumb-overlay"><span class="duration-badge">${v.duration}</span></div>
+        <div class="play-btn">▶</div>
+        ${v.quality === '4K' ? '<span style="position:absolute;top:8px;right:8px;background:rgba(245,158,11,0.9);color:#000;font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;">4K</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title" onclick="openPlayer(${v.id})">${v.title}</div>
+        <div class="card-meta">
+          <span class="card-channel">📺 ${v.channel} <span class="verified">✓</span></span>
+          <span class="card-views">${v.views}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action" onclick="openPlayer(${v.id})">▶ Watch</button>
+          <button class="btn-action mp4" onclick="startDownloadCard(${v.id},'mp4')">⬇ MP4</button>
+          <button class="btn-action mp3" onclick="startDownloadCard(${v.id},'mp3')">🎵 MP3</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── PLAYER ────────────────────────────────────────────
+function openPlayer(id) {
+  const v = VIDEO_DB.find(x => x.id === id);
+  if (!v) return;
+  currentVideo = v;
+  isPlaying = false;
+  clearInterval(playInterval);
+  playProgress = 0;
+
+  document.getElementById('player-thumb').src = v.thumb;
+  document.getElementById('player-title').textContent = v.title;
+  document.getElementById('player-channel').textContent = v.channel;
+  document.getElementById('player-views').textContent = v.views + ' views';
+  document.getElementById('player-date').textContent = v.date;
+  document.getElementById('player-quality-badge').textContent = v.quality + ' HD';
+  document.getElementById('stat-views').textContent = v.views;
+  document.getElementById('stat-likes').textContent = v.likes;
+  document.getElementById('stat-comments').textContent = v.comments;
+  document.getElementById('stat-duration').textContent = v.duration;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('time-display').textContent = '0:00 / ' + v.duration.split(':').slice(-2).join(':');
+  document.getElementById('play-icon').textContent = '▶';
+  document.getElementById('player-msg').textContent = 'Click to play preview';
+
+  const idx = VIDEO_DB.indexOf(v);
+  const cmts = COMMENTS_DB[idx] || COMMENTS_DB[0];
+  document.getElementById('comments-count').textContent = v.comments;
+  const list = document.getElementById('comments-list');
+  list.innerHTML = '';
+  cmts.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'comment';
+    el.style.animationDelay = (i * 0.1) + 's';
+    el.innerHTML = `
+      <div class="comment-avatar" style="background:${c.bg}20;color:${c.bg}">${c.avatar}</div>
+      <div class="comment-body">
+        <div class="comment-name">${c.name}</div>
+        <div class="comment-text">${c.text}</div>
+        <div class="comment-likes">👍 ${c.likes}</div>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+
+  const panel = document.getElementById('player-panel');
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function togglePlay() {
+  if (!currentVideo) return;
+  isPlaying = !isPlaying;
+  document.getElementById('play-icon').textContent = isPlaying ? '⏸' : '▶';
+  document.getElementById('player-msg').textContent = isPlaying ? 'Now playing preview…' : 'Paused';
+
+  if (isPlaying) {
+    playInterval = setInterval(() => {
+      playProgress = Math.min(playProgress + (100 / (currentVideo.durationSec)), 100);
+      document.getElementById('progress-fill').style.width = playProgress + '%';
+      const elapsed = Math.floor(currentVideo.durationSec * playProgress / 100);
+      document.getElementById('time-display').textContent = formatTime(elapsed) + ' / ' + formatTime(currentVideo.durationSec);
+      if (playProgress >= 100) { clearInterval(playInterval); isPlaying = false; document.getElementById('play-icon').textContent = '▶'; }
+    }, 1000);
+  } else {
+    clearInterval(playInterval);
+  }
+}
+
+function seekBar(e) {
+  const bar = e.currentTarget;
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  playProgress = pct * 100;
+  document.getElementById('progress-fill').style.width = playProgress + '%';
+  if (currentVideo) {
+    const elapsed = Math.floor(currentVideo.durationSec * pct);
+    document.getElementById('time-display').textContent = formatTime(elapsed) + ' / ' + formatTime(currentVideo.durationSec);
+  }
+}
+
+function prevTrack() {
+  if (!currentVideo) return;
+  const idx = VIDEO_DB.indexOf(currentVideo);
+  const prev = VIDEO_DB[(idx - 1 + VIDEO_DB.length) % VIDEO_DB.length];
+  openPlayer(prev.id);
+}
+function nextTrack() {
+  if (!currentVideo) return;
+  const idx = VIDEO_DB.indexOf(currentVideo);
+  const next = VIDEO_DB[(idx + 1) % VIDEO_DB.length];
+  openPlayer(next.id);
+}
+
+function formatTime(s) {
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+// ── INSTAGRAM ────────────────────────────────────────
+function igFetch() {
+  const url = document.getElementById('ig-input').value.trim();
+  if (!url) return;
+  document.getElementById('ig-empty').classList.remove('visible');
+  document.getElementById('ig-result').classList.remove('visible');
+  document.getElementById('ig-loading').classList.add('visible');
+
+  setTimeout(() => {
+    document.getElementById('ig-loading').classList.remove('visible');
+    const data = url.includes('instagram.com/reel') ? IG_MOCKS["instagram.com/reel"] : IG_MOCKS["default"];
+    document.getElementById('ig-username').textContent = data.user;
+    document.getElementById('ig-handle').textContent = data.handle;
+    document.getElementById('ig-caption').textContent = data.caption;
+    document.getElementById('ig-likes').textContent = data.likes;
+    document.getElementById('ig-cmt').textContent = data.cmt;
+    document.getElementById('ig-size-hd').textContent = data.sizehd;
+    document.getElementById('ig-size-sd').textContent = data.sizesd;
+    document.getElementById('ig-result').classList.add('visible');
+  }, 1600 + Math.random() * 500);
+}
+
+// ── AUTO-DETECT ───────────────────────────────────────
+function autoDetect() {
+  const url = document.getElementById('auto-input').value.trim();
+  if (!url) return;
+  document.getElementById('auto-empty').classList.remove('visible');
+  const result = document.getElementById('auto-result');
+  result.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);font-size:15px;">
+    <div class="spinner-big" style="margin:0 auto 20px;"></div>
+    Detecting platform…
+  </div>`;
+
+  setTimeout(() => {
+    const platform = url.includes('youtube') || url.includes('youtu.be') ? 'YouTube'
+      : url.includes('instagram') ? 'Instagram'
+      : url.includes('twitter') || url.includes('x.com') ? 'Twitter / X'
+      : url.includes('tiktok') ? 'TikTok'
+      : 'Unknown Platform';
+
+    const emoji = { 'YouTube':'▶', 'Instagram':'📸', 'Twitter / X':'🐦', 'TikTok':'🎵' }[platform] || '🔗';
+    result.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;animation:fadeSlide 0.35s ease;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="width:56px;height:56px;background:rgba(124,92,252,0.12);border:1px solid var(--border2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">${emoji}</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">Detected: ${platform}</div>
+        <div style="font-size:13px;color:var(--text3);word-break:break-all;">${url.slice(0,60)}${url.length>60?'…':''}</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-dl mp4" onclick="startDownload('mp4')">⬇ Download MP4</button>
+        <button class="btn-dl mp3" onclick="startDownload('mp3')">🎵 Download MP3</button>
+      </div>
+    </div>`;
+  }, 1200 + Math.random() * 400);
+}
+
+// ── DOWNLOAD ──────────────────────────────────────────
+function startDownloadCard(id, fmt) {
+  const v = VIDEO_DB.find(x => x.id === id);
+  if (!v) return;
+  triggerDownload(fmt === 'mp4' ? `${v.title.slice(0,25)}_1080p.mp4` : `${v.title.slice(0,25)}_audio.mp3`);
+}
+
+function startDownload(fmt, src) {
+  const v = currentVideo;
+  let fname;
+  if (src === 'ig') {
+    fname = fmt === 'mp4-hd' ? 'reel_1080p.mp4' : fmt === 'mp4-sd' ? 'reel_480p.mp4' : 'reel_thumb.jpg';
+  } else if (v) {
+    fname = fmt === 'mp4' ? `${v.title.slice(0,25)}_1080p.mp4` : `${v.title.slice(0,25)}_audio.mp3`;
+  } else {
+    fname = fmt === 'mp4' ? 'video_1080p.mp4' : 'audio.mp3';
+  }
+  triggerDownload(fname);
+}
+
+function triggerDownload(fname) {
+  clearInterval(downloadInterval);
+  const toast = document.getElementById('dl-toast');
+  const fill = document.getElementById('toast-fill');
+  const pct = document.getElementById('toast-pct');
+  const speed = document.getElementById('toast-speed');
+  const spinner = document.getElementById('toast-spinner');
+  const titleEl = document.getElementById('toast-title-text');
+  document.getElementById('toast-file').textContent = fname;
+
+  fill.style.width = '0%';
+  pct.textContent = '0%';
+  speed.textContent = '—';
+  titleEl.textContent = 'Preparing download…';
+  spinner.style.display = '';
+  toast.classList.add('visible');
+
+  let p = 0;
+  const speeds = ['12.4 MB/s','18.7 MB/s','24.1 MB/s','9.8 MB/s','31.2 MB/s'];
+  downloadInterval = setInterval(() => {
+    p += 1.5 + Math.random() * 4;
+    if (p >= 100) {
+      p = 100;
+      clearInterval(downloadInterval);
+      titleEl.textContent = 'Download Complete!';
+      spinner.style.display = 'none';
+      fill.style.background = 'var(--green)';
+      pct.textContent = '100%';
+      speed.textContent = 'Done ✓';
+      setTimeout(() => {
+        toast.classList.remove('visible');
+        fill.style.background = '';
+      }, 2800);
+      return;
+    }
+    fill.style.width = p.toFixed(1) + '%';
+    pct.textContent = Math.round(p) + '%';
+    speed.textContent = speeds[Math.floor(Math.random() * speeds.length)];
+    if (p > 5) titleEl.textContent = 'Downloading…';
+  }, 120);
+}
+
+function closeToast() {
+  clearInterval(downloadInterval);
+  document.getElementById('dl-toast').classList.remove('visible');
+}
+
+// ── INIT ──────────────────────────────────────────────
+document.getElementById('yt-empty').classList.add('visible');
+</script>
 </body>
 </html>
